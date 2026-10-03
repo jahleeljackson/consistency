@@ -7,7 +7,7 @@ function grow(current: number): number {
 }
 
 export function milestoneMarks(total: number): number[] {
-  const marks = [...EARLY_MILESTONES]
+  const marks: number[] = [...EARLY_MILESTONES]
   while (marks[marks.length - 1] <= total) {
     marks.push(grow(marks[marks.length - 1]))
   }
