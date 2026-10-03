@@ -1,0 +1,117 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Fraunces", "Times New Roman", serif;
+  --font-sans: "Figtree", "Avenir Next", system-ui, sans-serif;
+}
+
+:root {
+  --bg: #f3eee4;
+  --bg-accent: #e7dcc9;
+  --surface: #fbf6ee;
+  --surface-strong: #fffdf8;
+  --ink: #3d3229;
+  --muted: #74685c;
+  --line: #d8cbb8;
+  --clay: #b56b43;
+  --clay-deep: #8c4d2d;
+  --moss: #6b7d55;
+  --sand: #c4a574;
+  --shadow: 0 18px 40px -28px rgb(61 50 41 / 0.45);
+}
+
+[data-theme="evening"] {
+  --bg: #1a1612;
+  --bg-accent: #2a231c;
+  --surface: #241e18;
+  --surface-strong: #2e271f;
+  --ink: #f0e6d6;
+  --muted: #b5a792;
+  --line: #3d342b;
+  --clay: #d4895e;
+  --clay-deep: #f0c3a0;
+  --moss: #8fa276;
+  --sand: #d4b88a;
+  --shadow: 0 18px 40px -24px rgb(0 0 0 / 0.7);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(1200px 500px at 10% -10%, var(--bg-accent), transparent 55%),
+    var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+}
+
+#root {
+  isolation: isolate;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--clay);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html[data-reduced-motion="true"] *,
+html[data-reduced-motion="true"] *::before,
+html[data-reduced-motion="true"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+@keyframes stone-drop {
+  from {
+    opacity: 0.35;
+    transform: translateY(var(--drop-from, -72px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stone-drop {
+  animation: stone-drop 620ms cubic-bezier(0.22, 1, 0.28, 1) both;
+}
+
+.cairn-stage {
+  border-radius: 1.75rem;
+  background:
+    linear-gradient(180deg, rgb(255 253 248 / 0.15), transparent 42%),
+    var(--surface-strong);
+}
