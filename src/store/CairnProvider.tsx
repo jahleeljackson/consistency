@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react'
 import { addCompletion } from '../domain/completions.ts'
+import { getBrowserTimeZone } from '../domain/dates.ts'
 import {
   appendCompletion,
   deleteMissionFromState,
@@ -17,12 +18,17 @@ import {
   replaceSettings,
   upsertMission,
 } from '../domain/merge.ts'
+import { applyMomentumDecay } from '../domain/momentum.ts'
 import { createMission, updateMission } from '../domain/missions.ts'
 import { parseExportPayload, parseMissionDraft, toExportPayload } from '../domain/schema.ts'
 import { emptyState } from '../domain/state.ts'
 import type { AppSettings, AppState, MissionDraft, MissionStatus } from '../domain/types.ts'
 import { loadLocalState, saveLocalState } from '../storage/local.ts'
 import { fetchRemoteState, pushRemoteState } from '../storage/remote.ts'
+
+function withMomentumDecay(state: AppState): AppState {
+  return applyMomentumDecay(state, new Date(), getBrowserTimeZone())
+}
 
 export type SyncStatus = 'idle' | 'syncing' | 'offline' | 'error'
 export type LoadStatus = 'loading' | 'ready' | 'error'
@@ -66,7 +72,7 @@ export function CairnProvider({ children }: { children: ReactNode }) {
     try {
       const remote = await fetchRemoteState()
       const merged = remote ? mergeStates(stateRef.current, remote) : stateRef.current
-      const latest = mergeStates(stateRef.current, merged)
+      const latest = withMomentumDecay(mergeStates(stateRef.current, merged))
       await persistLatest(latest)
       try {
         await pushRemoteState(latest)
@@ -81,7 +87,7 @@ export function CairnProvider({ children }: { children: ReactNode }) {
 
   const commit = useCallback(
     async (updater: (current: AppState) => AppState) => {
-      const next = updater(stateRef.current)
+      const next = withMomentumDecay(updater(stateRef.current))
       await persistLatest(next)
       void flushRemote()
     },
@@ -91,7 +97,7 @@ export function CairnProvider({ children }: { children: ReactNode }) {
   const boot = useCallback(async () => {
     setLoadStatus('loading')
     try {
-      const local = await loadLocalState()
+      const local = withMomentumDecay(await loadLocalState())
       await persistLatest(local)
       setLoadStatus('ready')
       void flushRemote()

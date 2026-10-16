@@ -1,5 +1,6 @@
 import { daysBetweenKeys, startOfMonthKey, startOfWeekKey, zonedDateKey } from './dates.ts'
 import { milestoneProgress } from './milestones.ts'
+import { streakStats } from './momentum.ts'
 import type { Completion, Mission, MissionStats } from './types.ts'
 
 export function completionsForMission(
@@ -44,6 +45,7 @@ export function getMissionStats(
   const stones = completionsForMission(completions, mission.id)
   const dateKeys = stones.map((stone) => zonedDateKey(stone.completedAt, timeZone))
   const marks = milestoneProgress(stones.length)
+  const streaks = streakStats(completions, mission, now, timeZone)
 
   return {
     total: stones.length,
@@ -52,6 +54,8 @@ export function getMissionStats(
     stonesThisWeek: countOnOrAfter(stones, startOfWeekKey(now, timeZone), timeZone),
     stonesThisMonth: countOnOrAfter(stones, startOfMonthKey(now, timeZone), timeZone),
     longestConsecutiveDays: longestConsecutiveDays(dateKeys),
+    currentStreak: streaks.currentStreak,
+    longestStreak: streaks.longestStreak,
     nextMilestone: marks.next,
     previousMilestone: marks.previous,
     milestoneProgress: marks.progress,

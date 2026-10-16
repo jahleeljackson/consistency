@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { formatDisplayTime, formatRelativeTime } from '../../domain/dates.ts'
-import { getMissionStats } from '../../domain/stats.ts'
-import { completionsForMission } from '../../domain/stats.ts'
+import { periodLabel, periodLabelPlural } from '../../domain/periods.ts'
+import { completionsForMission, getMissionStats } from '../../domain/stats.ts'
 import type { Completion, Mission } from '../../domain/types.ts'
 import { Button } from '../../components/Button.tsx'
 import { CairnView } from '../cairn/CairnView.tsx'
@@ -22,6 +22,9 @@ export function MissionCard({
   const stones = completionsForMission(completions, mission.id)
   const stats = getMissionStats(mission, completions)
   const remaining = stats.nextMilestone - stats.total
+  const isMomentum = mission.kind === 'momentum'
+  const unit = periodLabel(mission.cadence)
+  const units = periodLabelPlural(mission.cadence)
 
   return (
     <article className="flex flex-col rounded-[2rem] border border-[var(--line)] bg-[var(--surface)] p-5 shadow-[var(--shadow)]">
@@ -32,21 +35,34 @@ export function MissionCard({
           size="mini"
           reducedMotion={reducedMotion}
         />
-        <h2 className="font-display mt-2 text-2xl">{mission.name}</h2>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <h2 className="font-display text-2xl">{mission.name}</h2>
+          <span className="rounded-full border border-[var(--line)] px-2.5 py-0.5 text-xs font-semibold text-[var(--muted)]">
+            {isMomentum ? 'Momentum' : 'Cairn'}
+          </span>
+        </div>
         <p className="mt-1 text-sm text-[var(--muted)]">
           {stats.total} {stats.total === 1 ? 'stone' : 'stones'}
           {stats.lastAddedAt ? ` · last added ${formatRelativeTime(stats.lastAddedAt)}` : ''}
         </p>
-        <p className="mt-1 text-sm text-[var(--muted)]">
-          {mission.cadence === 'daily' ? 'Daily rhythm' : 'Weekly rhythm'}
-          {mission.preferredTime ? ` · ${formatDisplayTime(mission.preferredTime)}` : ''}
-        </p>
+        {isMomentum ? (
+          <p className="mt-1 text-sm text-[var(--muted)]">
+            Streak {stats.currentStreak} {stats.currentStreak === 1 ? unit : units}
+            {' · '}
+            best {stats.longestStreak} {stats.longestStreak === 1 ? unit : units}
+            {' · '}
+            {mission.cadence} rhythm
+          </p>
+        ) : (
+          <p className="mt-1 text-sm text-[var(--muted)]">
+            {mission.cadence === 'daily' ? 'Daily rhythm' : 'Weekly rhythm'}
+            {mission.preferredTime ? ` · ${formatDisplayTime(mission.preferredTime)}` : ''}
+          </p>
+        )}
       </Link>
       <div className="mt-4">
         <div className="mb-2 flex items-center justify-between text-xs text-[var(--muted)]">
-          <span>
-            {`${remaining} to ${stats.nextMilestone}`}
-          </span>
+          <span>{`${remaining} to ${stats.nextMilestone}`}</span>
           <span>{Math.round(stats.milestoneProgress * 100)}%</span>
         </div>
         <div

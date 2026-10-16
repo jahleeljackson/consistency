@@ -1,4 +1,5 @@
 export type Cadence = 'daily' | 'weekly'
+export type MissionKind = 'cairn' | 'momentum'
 export type MissionStatus = 'active' | 'paused' | 'archived'
 export type ColorId = 'clay' | 'sand' | 'moss' | 'slate' | 'terracotta'
 export type ThemePreference = 'light' | 'evening'
@@ -7,12 +8,15 @@ export interface Mission {
   id: string
   name: string
   description: string
+  kind: MissionKind
   cadence: Cadence
   preferredTime?: string
   color: ColorId
   status: MissionStatus
   createdAt: string
   updatedAt: string
+  /** Last fully elapsed period key already evaluated for momentum decay. */
+  momentumCheckedThrough?: string
 }
 
 export interface Completion {
@@ -43,6 +47,7 @@ export interface AppState {
 export interface MissionDraft {
   name: string
   description: string
+  kind?: MissionKind
   cadence: Cadence
   preferredTime?: string
   color: ColorId
@@ -55,6 +60,8 @@ export interface MissionStats {
   stonesThisWeek: number
   stonesThisMonth: number
   longestConsecutiveDays: number
+  currentStreak: number
+  longestStreak: number
   nextMilestone: number
   previousMilestone: number
   milestoneProgress: number

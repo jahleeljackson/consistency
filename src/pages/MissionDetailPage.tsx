@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '../components/Button.tsx'
 import { ConfirmDialog } from '../components/ConfirmDialog.tsx'
 import { formatDisplayDate, formatDisplayTime, formatRelativeTime, getBrowserTimeZone } from '../domain/dates.ts'
+import { periodLabel, periodLabelPlural } from '../domain/periods.ts'
 import { completionsForMission, getMissionStats } from '../domain/stats.ts'
 import { CairnView } from '../features/cairn/CairnView.tsx'
 import { CompletionCalendar } from '../features/history/CompletionCalendar.tsx'
@@ -30,6 +31,9 @@ export function MissionDetailPage() {
 
   const stones = completionsForMission(state.completions, mission.id)
   const stats = getMissionStats(mission, state.completions)
+  const isMomentum = mission.kind === 'momentum'
+  const unit = periodLabel(mission.cadence)
+  const units = periodLabelPlural(mission.cadence)
 
   return (
     <div className="space-y-10">
@@ -38,12 +42,18 @@ export function MissionDetailPage() {
           <p className="text-sm text-[var(--muted)]">
             <Link to="/">All missions</Link>
           </p>
-          <h1 className="font-display mt-2 text-4xl sm:text-5xl">{mission.name}</h1>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <h1 className="font-display text-4xl sm:text-5xl">{mission.name}</h1>
+            <span className="rounded-full border border-[var(--line)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted)]">
+              {isMomentum ? 'Momentum' : 'Cairn'}
+            </span>
+          </div>
           {mission.description ? (
             <p className="mt-3 max-w-2xl text-[var(--muted)]">{mission.description}</p>
           ) : null}
           <p className="mt-2 text-sm text-[var(--muted)]">
             {mission.cadence === 'daily' ? 'Daily rhythm' : 'Weekly rhythm'}
+            {isMomentum ? ' · miss a period, lose a stone' : ''}
             {mission.preferredTime ? ` · ${formatDisplayTime(mission.preferredTime)}` : ''}
             {mission.status !== 'active' ? ` · ${mission.status}` : ''}
           </p>
@@ -75,7 +85,23 @@ export function MissionDetailPage() {
           label="Last added"
           value={stats.lastAddedAt ? formatRelativeTime(stats.lastAddedAt) : 'Not yet'}
         />
-        <Stat label="Longest run" value={`${stats.longestConsecutiveDays} day${stats.longestConsecutiveDays === 1 ? '' : 's'}`} />
+        {isMomentum ? (
+          <>
+            <Stat
+              label="Current streak"
+              value={`${stats.currentStreak} ${stats.currentStreak === 1 ? unit : units}`}
+            />
+            <Stat
+              label="Longest streak"
+              value={`${stats.longestStreak} ${stats.longestStreak === 1 ? unit : units}`}
+            />
+          </>
+        ) : (
+          <Stat
+            label="Longest run"
+            value={`${stats.longestConsecutiveDays} day${stats.longestConsecutiveDays === 1 ? '' : 's'}`}
+          />
+        )}
         <Stat label="This week" value={String(stats.stonesThisWeek)} />
         <Stat label="This month" value={String(stats.stonesThisMonth)} />
       </dl>

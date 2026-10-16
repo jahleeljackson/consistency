@@ -5,6 +5,7 @@ import type { AppState, MissionDraft } from './types.ts'
 export const missionDraftSchema = z.object({
   name: z.string().trim().min(1, 'Give this mission a name.').max(80, 'Keep the name under 80 characters.'),
   description: z.string().max(500, 'Keep the description under 500 characters.'),
+  kind: z.enum(['cairn', 'momentum']).default('cairn'),
   cadence: z.enum(['daily', 'weekly']),
   preferredTime: z
     .string()
@@ -17,12 +18,14 @@ const missionSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1).max(80),
   description: z.string().max(500),
+  kind: z.enum(['cairn', 'momentum']).default('cairn'),
   cadence: z.enum(['daily', 'weekly']),
   preferredTime: z.string().optional(),
   color: z.enum(['clay', 'sand', 'moss', 'slate', 'terracotta']),
   status: z.enum(['active', 'paused', 'archived']),
   createdAt: z.string(),
   updatedAt: z.string(),
+  momentumCheckedThrough: z.string().optional(),
 })
 
 const completionSchema = z.object({
@@ -61,6 +64,7 @@ export function parseMissionDraft(input: unknown): MissionDraft {
   return {
     name: parsed.name,
     description: parsed.description,
+    kind: parsed.kind,
     cadence: parsed.cadence,
     preferredTime: parsed.preferredTime || undefined,
     color: parsed.color,

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { parseMissionDraft } from '../../domain/schema.ts'
-import type { Mission, MissionDraft } from '../../domain/types.ts'
+import type { Mission, MissionDraft, MissionKind } from '../../domain/types.ts'
 import { Button } from '../../components/Button.tsx'
 import { Field, fieldControlClass } from '../../components/Field.tsx'
 import { ColorSwatches } from './ColorSwatches.tsx'
@@ -8,9 +8,21 @@ import { ColorSwatches } from './ColorSwatches.tsx'
 const emptyDraft: MissionDraft = {
   name: '',
   description: '',
+  kind: 'cairn',
   cadence: 'daily',
   preferredTime: '',
   color: 'clay',
+}
+
+const KIND_COPY: Record<MissionKind, { title: string; hint: string }> = {
+  cairn: {
+    title: 'Cairn',
+    hint: 'Stones only accumulate. Missed days never take stones away.',
+  },
+  momentum: {
+    title: 'Momentum',
+    hint: 'Miss a full day or week and a stone is removed. Tracks your current and longest streak.',
+  },
 }
 
 export function MissionForm({
@@ -27,6 +39,7 @@ export function MissionForm({
       ? {
           name: mission.name,
           description: mission.description,
+          kind: mission.kind ?? 'cairn',
           cadence: mission.cadence,
           preferredTime: mission.preferredTime ?? '',
           color: mission.color,
@@ -35,6 +48,7 @@ export function MissionForm({
   )
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
+  const kind = draft.kind ?? 'cairn'
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -74,7 +88,35 @@ export function MissionForm({
           maxLength={500}
         />
       </Field>
-      <Field label="Suggested rhythm" hint="A preference only. You can add a stone whenever you like.">
+      <Field label="Mission type" hint={KIND_COPY[kind].hint}>
+        <div className="grid grid-cols-2 gap-3">
+          {(['cairn', 'momentum'] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setDraft((current) => ({ ...current, kind: value }))}
+              className={`rounded-2xl border px-4 py-3 text-left ${
+                kind === value
+                  ? 'border-[var(--ink)] bg-[var(--surface-strong)]'
+                  : 'border-[var(--line)] bg-[var(--surface)]'
+              }`}
+            >
+              <span className="block font-semibold">{KIND_COPY[value].title}</span>
+              <span className="mt-1 block text-xs text-[var(--muted)]">
+                {value === 'cairn' ? 'Keep every stone' : 'Streaks & decay'}
+              </span>
+            </button>
+          ))}
+        </div>
+      </Field>
+      <Field
+        label={kind === 'momentum' ? 'Required rhythm' : 'Suggested rhythm'}
+        hint={
+          kind === 'momentum'
+            ? 'If this full period passes with no stone, one stone is removed.'
+            : 'A preference only. You can add a stone whenever you like.'
+        }
+      >
         <div className="grid grid-cols-2 gap-3">
           {(['daily', 'weekly'] as const).map((cadence) => (
             <button
